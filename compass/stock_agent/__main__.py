@@ -17,6 +17,18 @@ import tempfile
 from pathlib import Path
 
 
+def cleanup_screenshots():
+    """Remove all old screenshots to prevent disk bloat."""
+    tmp_dir = Path("/tmp/stock_agent")
+    if tmp_dir.exists():
+        count = 0
+        for f in tmp_dir.glob("*.png"):
+            f.unlink()
+            count += 1
+        if count > 0:
+            print(f"[stock_agent] Cleaned up {count} old screenshot(s)")
+
+
 def extract_clipboard_image() -> str:
     """Extract image from macOS clipboard to a temp PNG."""
     try:
