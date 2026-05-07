@@ -11,7 +11,6 @@ Usage:
 
 import argparse
 import asyncio
-import sys
 import tempfile
 from pathlib import Path
 
@@ -19,30 +18,23 @@ from pathlib import Path
 def extract_clipboard_image() -> str:
     """Extract image from macOS clipboard to a temp PNG."""
     try:
-        import AppKit
+        from PIL import ImageGrab
     except ImportError:
-        print("[stock_agent] PyObjC not installed. Use --capture instead.")
-        sys.exit(1)
+        print("[stock_agent] Pillow not installed. Use --capture instead.")
+        raise SystemExit(1)
 
-    pasteboard = AppKit.NSPasteboard.generalPasteboard()
+    img = ImageGrab.grabclipboard()
+    if img is None:
+        print("[stock_agent] Clipboard empty or not an image.")
+        print("[stock_agent] Take a screenshot (Cmd+Shift+4, then Cmd+C).")
+        raise SystemExit(1)
 
-    png_data = pasteboard.dataForType_(AppKit.NSPasteboardTypePNG)
-    if png_data:
-        img = AppKit.NSImage.alloc().initWithData_(png_data)
-    else:
-        tiff_data = pasteboard.dataForType_(AppKit.NSPasteboardTypeTIFF)
-        if tiff_data:
-            img = AppKit.NSImage.alloc().initWithData_(tiff_data)
-        else:
-            print("[stock_agent] Clipboard empty or not an image.")
-            print("[stock_agent] Take a screenshot (Cmd+Shift+4, then Cmd+C).")
-            sys.exit(1)
-
-    bitmap_rep = AppKit.NSBitmapImageRep.imageRepWithData_(img.TIFFRepresentation())
-    png_bytes = bitmap_rep.representationUsingType_properties_(AppKit.NSPNGFileType, None)
+    # Convert RGBA → RGB if needed
+    if img.mode == "RGBA":
+        img = img.convert("RGB")
 
     tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir="/tmp/stock_agent")
-    png_bytes.writeToFile_(tmp.name)
+    img.save(tmp.name, format="PNG")
     tmp.close()
     return tmp.name
 
@@ -122,6 +114,8 @@ def main():
             path = extract_clipboard_image()
             image_paths = [path]
             print(f"[stock_agent] Clipboard image: {path}")
+        except SystemExit:
+            raise
         except Exception as e:
             print(f"[stock_agent] Failed: {e}")
             sys.exit(1)
