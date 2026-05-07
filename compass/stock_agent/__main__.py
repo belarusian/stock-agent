@@ -113,6 +113,9 @@ def main():
     if args.review:
         args.mode = "review"
 
+    # Clean up old screenshots before each run
+    cleanup_screenshots()
+
     image_paths = []
 
     if args.capture:
