@@ -39,7 +39,7 @@ def extract_clipboard_image() -> str:
             sys.exit(1)
 
     bitmap_rep = AppKit.NSBitmapImageRep.imageRepWithData_(img.TIFFRepresentation())
-    png_bytes = bitmap_rep.representationUsingType_(AppKit.NSPNGFileType, properties=None)
+    png_bytes = bitmap_rep.representationUsingType_properties_(AppKit.NSPNGFileType, None)
 
     tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir="/tmp/stock_agent")
     png_bytes.writeToFile_(tmp.name)
