@@ -11,6 +11,8 @@ Usage:
 
 import argparse
 import asyncio
+import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -33,7 +35,9 @@ def extract_clipboard_image() -> str:
     if img.mode == "RGBA":
         img = img.convert("RGB")
 
-    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir="/tmp/stock_agent")
+    tmp_dir = "/tmp/stock_agent"
+    os.makedirs(tmp_dir, exist_ok=True)
+    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=tmp_dir)
     img.save(tmp.name, format="PNG")
     tmp.close()
     return tmp.name
